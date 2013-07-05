@@ -9,7 +9,8 @@
     "require": {
         "dflydev/hawk": "dev-master@dev",
         "ircmaxell/random-lib": "dev-master@dev",
-        "ircmaxell/security-lib": "dev-master@dev"
+        "ircmaxell/security-lib": "dev-master@dev",
+        "symfony/security": "~2.3"
     },
     "require-dev": {
         "phpunit/phpunit": "~3.7",
@@ -18,5 +19,10 @@
     },
     "repositories": [
         {"type": "vcs", "url": "file:///home/davem/src/dflydev-hawk"}
-    ]
+    ],
+    "autoload": {
+        "psr-0": {
+            "Dflydev\\Hawk\\Symfony": "src"
+        }
+    }
 }
