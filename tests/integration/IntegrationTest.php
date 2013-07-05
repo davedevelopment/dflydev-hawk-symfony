@@ -6,6 +6,7 @@ use Dflydev\Hawk\Credentials\CredentialsInterface;
 use Dflydev\Hawk\Symfony\AuthenticationEntryPoint as HawkAuthenticationEntryPoint;
 use Dflydev\Hawk\Symfony\Listener as HawkListener;
 use Dflydev\Hawk\Symfony\Provider as HawkProvider;
+use Dflydev\Hawk\Symfony\SilexServiceProvider as HawkSilexServiceProvider;
 use Dflydev\Hawk\Crypto\Crypto;
 use Dflydev\Hawk\Server\Server;
 use Silex\Application;
@@ -98,6 +99,7 @@ class IntegrationTest extends \PHPUnit_Framework_TestCase
         $app['debug'] = true;
         unset($app['exception_handler']);
 
+        $app->register(new HawkSilexServiceProvider(), array());
         $app->register(new SecurityServiceProvider(), array(
             "security.firewalls" => array(
                 "api" => array(
@@ -107,44 +109,11 @@ class IntegrationTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $app['dflydev.hawk.crypto'] = $app->share(function ($app) {
-            return new Crypto;
-        });
-
-        $app['dflydev.hawk.server'] = $app->share(function ($app) {
-            return new Server($app['dflydev.hawk.crypto']);
-        });
-
-        $app['security.authentication_listener.factory.hawk'] = $app->protect(function($name, $options) use ($app) {
-            return array(
-                'security.authentication_provider.'.$name.'.hawk',
-                'security.authentication_listener.'.$name.'.hawk',
-                'security.entry_point.hawk',
-                'pre_auth',
-            );
-        });
-
-        $app['security.entry_point.hawk'] = $app->share(function() use ($app) {
-            return new HawkAuthenticationEntryPoint();
-        });
-
         $app['security.user_provider.api'] = $app->share(function() use ($app) {
             return new UserProvider(array(
                 new User("dave", "sha256", "12345", array("ROLE_USER")),
                 new User("beau", "sha256", "67890", array("ROLE_USER")),
             ));
-        });
-
-        $app['security.authentication_provider.api.hawk'] = $app->share(function ($app) {
-            return new HawkProvider($app['security.user_provider.api'], $app['dflydev.hawk.server']);
-        });
-
-        $app['security.authentication_listener.api.hawk'] = $app->share(function() use ($app) {
-            return new HawkListener(
-                $app['security'],
-                $app['security.authentication_manager'],
-                $app['security.entry_point.hawk']
-            );
         });
 
         $app->match("/resource/{id}", function ($id) {
@@ -174,13 +143,13 @@ class IntegrationTest extends \PHPUnit_Framework_TestCase
         if ($app) {
             $data .= $app."\n".$dlg."\n";
         }
-        return base64_encode(hash_hmac($algo, $data, $key, false)); // change this when PR1 gets merged
+        return base64_encode(hash_hmac($algo, $data, $key, true));
     }
 
     protected function generatePayloadHash($algo, $payload, $contentType)
     {
         $data = "hawk.1.payload\n".$contentType."\n".$payload."\n";
-        return base64_encode(hash($algo, $data, false)); // change this when PR1 gets merged
+        return base64_encode(hash($algo, $data, false)); // change this when PR2 gets merged
     }
 }
 

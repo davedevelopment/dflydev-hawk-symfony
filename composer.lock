@@ -3,15 +3,21 @@
         "This file locks the dependencies of your project to a known state",
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file"
     ],
-    "hash": "deab975fb5ee8c8e7173c0c86a0e68bf",
+    "hash": "25d073371cbe1e3d77ce00acb7e4121c",
     "packages": [
         {
             "name": "dflydev/hawk",
             "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "/home/davem/src/dflydev-hawk",
-                "reference": "eb2298d8d2a41ece0d867979eaafd11f6b5f0fb7"
+                "url": "https://github.com/dflydev/dflydev-hawk.git",
+                "reference": "67df02e6fe6b53258cc936a8db080f7dd7c763ca"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dflydev/dflydev-hawk/zipball/67df02e6fe6b53258cc936a8db080f7dd7c763ca",
+                "reference": "67df02e6fe6b53258cc936a8db080f7dd7c763ca",
+                "shasum": ""
             },
             "require": {
                 "ircmaxell/random-lib": "dev-master",
@@ -26,7 +32,11 @@
                     "Dflydev\\Hawk": "src"
                 }
             },
-            "time": "2013-07-03 18:37:26"
+            "support": {
+                "source": "https://github.com/dflydev/dflydev-hawk/tree/master",
+                "issues": "https://github.com/dflydev/dflydev-hawk/issues"
+            },
+            "time": "2013-07-05 14:08:42"
         },
         {
             "name": "ircmaxell/random-lib",
