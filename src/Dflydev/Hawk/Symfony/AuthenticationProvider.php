@@ -10,7 +10,7 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Dflydev\Hawk\Server\Server;
 use Dflydev\Hawk\Server\UnauthorizedException;
 
-class Provider implements AuthenticationProviderInterface
+class AuthenticationProvider implements AuthenticationProviderInterface
 {
     private $userProvider;
     private $hawkServer;

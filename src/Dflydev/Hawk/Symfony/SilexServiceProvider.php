@@ -5,8 +5,8 @@ namespace Dflydev\Hawk\Symfony;
 use Silex\ServiceProviderInterface;
 use Silex\Application;
 use Dflydev\Hawk\Symfony\AuthenticationEntryPoint as HawkAuthenticationEntryPoint;
-use Dflydev\Hawk\Symfony\Listener as HawkListener;
-use Dflydev\Hawk\Symfony\Provider as HawkProvider;
+use Dflydev\Hawk\Symfony\FirewallListener as HawkListener;
+use Dflydev\Hawk\Symfony\AuthenticationProvider as HawkProvider;
 use Dflydev\Hawk\Crypto\Crypto;
 use Dflydev\Hawk\Server\Server;
 

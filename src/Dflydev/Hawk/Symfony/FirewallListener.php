@@ -10,7 +10,7 @@ use Symfony\Component\Security\Core\SecurityContextInterface;
 use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
 use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
 
-class Listener implements ListenerInterface
+class FirewallListener implements ListenerInterface
 {
     protected $securityContext;
     protected $authenticationManager;
