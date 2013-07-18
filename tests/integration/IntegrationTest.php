@@ -149,7 +149,7 @@ class IntegrationTest extends \PHPUnit_Framework_TestCase
     protected function generatePayloadHash($algo, $payload, $contentType)
     {
         $data = "hawk.1.payload\n".$contentType."\n".$payload."\n";
-        return base64_encode(hash($algo, $data, false)); // change this when PR2 gets merged
+        return base64_encode(hash($algo, $data, true)); 
     }
 }
 
