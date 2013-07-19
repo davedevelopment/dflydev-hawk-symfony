@@ -9,6 +9,7 @@ use Dflydev\Hawk\Symfony\FirewallListener as HawkListener;
 use Dflydev\Hawk\Symfony\AuthenticationProvider as HawkProvider;
 use Dflydev\Hawk\Crypto\Crypto;
 use Dflydev\Hawk\Server\Server;
+use Dflydev\Hawk\Server\ServerBuilder;
 
 class SilexServiceProvider implements ServiceProviderInterface
 {
@@ -47,7 +48,16 @@ class SilexServiceProvider implements ServiceProviderInterface
 
         $app['security.hawk.server._proto'] = $app->protect(function ($name, $options) use ($app) {
             return $app->share(function ($app) use ($name, $options) {
-                return new Server($app['security.'.$name.'.hawk.crypto']);
+
+                $credentialsFunc = function ($username) use ($name, $app) {
+                    return $app['security.user_provider.'.$name]->loadUserByUsername($username);
+                };
+
+                $server = ServerBuilder::create($credentialsFunc)
+                    ->setCrypto($app['security.'.$name.'.hawk.crypto'])
+                    ->build();
+
+                return $server;
             });
         });
 

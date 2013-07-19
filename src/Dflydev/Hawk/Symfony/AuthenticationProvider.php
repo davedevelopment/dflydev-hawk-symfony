@@ -23,15 +23,9 @@ class AuthenticationProvider implements AuthenticationProviderInterface
 
     public function authenticate(TokenInterface $token)
     {
-        $credentialsFunc = function ($username) {
-            return $this->userProvider->loadUserByUsername($username);
-        };
-
-        $authenticator = $this->hawkServer->createAuthenticatorBuilder($credentialsFunc)->build();
-
         try {
 
-            $request = $this->hawkServer->createRequest(
+            $response = $this->hawkServer->authenticate(
                 $token->request->getMethod(),
                 $token->request->getHost(),
                 $token->request->getPort(),
@@ -41,10 +35,8 @@ class AuthenticationProvider implements AuthenticationProviderInterface
                 $token->request->headers->get('Authorization')
             );
 
-            list($credentials, $artifacts) = $authenticator->authenticate($request);
-
-            $authenticatedToken = new UserToken($credentials->getRoles());
-            $authenticatedToken->setUser($credentials);
+            $authenticatedToken = new UserToken($response->credentials()->getRoles());
+            $authenticatedToken->setUser($response->credentials());
 
             return $authenticatedToken;
 
