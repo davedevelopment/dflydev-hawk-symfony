@@ -35,7 +35,7 @@ class SilexServiceProvider implements ServiceProviderInterface
             }
 
             if (!isset($app['security.authentication_provider.'.$name.'.hawk'])) {
-                $app['security.authentication_provider.'.$name.'.hawk'] = $app['security.authentication_provider.hawk._proto']($name);
+                $app['security.authentication_provider.'.$name.'.hawk'] = $app['security.authentication_provider.hawk._proto']($name, $options);
             }
 
             return array(
@@ -71,16 +71,35 @@ class SilexServiceProvider implements ServiceProviderInterface
             return new HawkAuthenticationEntryPoint();
         });
 
-        $app['security.authentication_provider.hawk._proto'] = $app->protect(function ($name) use ($app) {
-            return new HawkProvider($app['security.user_provider.'.$name], $app['security.'.$name.'.hawk.server']);
+        $app['security.authentication_provider.hawk._proto'] = $app->protect(function ($name, $options) use ($app) {
+
+            $filteredOptions = array();
+            if (isset($options['header_field'])) {
+                $filteredOptions['header_field'] = $options['header_field'];
+            }
+
+            $provider = new HawkProvider(
+                $app['security.user_provider.'.$name], 
+                $app['security.'.$name.'.hawk.server'],
+                $filteredOptions
+            );
+
+            return $provider;
         });
 
         $app['security.authentication_listener.hawk._proto'] = $app->protect(function($name, $options) use ($app) {
             return $app->share(function () use ($app, $name, $options) {
+
+                $filteredOptions = array();
+                if (isset($options['header_field'])) {
+                    $filteredOptions['header_field'] = $options['header_field'];
+                }
+
                 return new HawkListener(
                     $app['security'],
                     $app['security.authentication_manager'],
-                    $app['security.entry_point.'.$name.'.hawk']
+                    $app['security.entry_point.'.$name.'.hawk'],
+                    $filteredOptions
                 );
             });
         });

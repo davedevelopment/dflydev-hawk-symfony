@@ -14,11 +14,15 @@ class AuthenticationProvider implements AuthenticationProviderInterface
 {
     private $userProvider;
     private $hawkServer;
+    private $options = array(
+        'header_field' => 'Authorization',
+    );
 
-    public function __construct(UserProviderInterface $userProvider, Server $hawkServer)
+    public function __construct(UserProviderInterface $userProvider, Server $hawkServer, array $options = array())
     {
         $this->userProvider = $userProvider;
         $this->hawkServer = $hawkServer;
+        $this->options = array_merge($this->options, $options);
     }
 
     public function authenticate(TokenInterface $token)
@@ -32,7 +36,7 @@ class AuthenticationProvider implements AuthenticationProviderInterface
                 $token->request->getRequestUri(),
                 $token->request->headers->get('Content-type'),
                 $token->request->getContent() !== "" ? $token->request->getContent() : null,
-                $token->request->headers->get('Authorization')
+                $token->request->headers->get($this->options['header_field'])
             );
 
             $authenticatedToken = new UserToken($response->credentials()->getRoles());
@@ -48,6 +52,6 @@ class AuthenticationProvider implements AuthenticationProviderInterface
 
     public function supports(TokenInterface $token)
     {
-        return $token instanceof UserToken;
+        return ($token instanceof UserToken && $token->request->headers->has($this->options['header_field']));
     }
 }

@@ -36,6 +36,31 @@ class IntegrationTest extends \PHPUnit_Framework_TestCase
     }  
 
     /** @test */
+    public function shouldAuthoriseValidRequestWithCustomHeaderField()
+    {
+        $this->client->request("GET", "/api_with_custom_header_field/4", [], [], [
+            'HTTP_HAWKAUTH' => $this->generateHeader("dave", "sha256", "12345",  time(), uniqid(), 'GET', "/api_with_custom_header_field/4", "localhost", 80, null, "hello", null, null),
+        ]);
+
+        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
+    }  
+
+    /** @test */
+    public function should401WithIncorrectHeader()
+    {
+        /* 
+         * Note we use the same header as the resource firewall, this ensures we 
+         * are doing work in the listener, as the the authenticationManager 
+         * polls all providers
+         */
+        $this->client->request("GET", "/api_with_custom_header_field/4", [], [], [
+            'HTTP_AUTHORIZATION' => $this->generateHeader("dave", "sha256", "12345",  time(), uniqid(), 'GET', "/api_with_custom_header_field/4", "localhost", 80, null, "hello", null, null),
+        ]);
+
+        $this->assertEquals(401, $this->client->getResponse()->getStatusCode());
+    }  
+
+    /** @test */
     public function should401WithIncorrectCreds()
     {
         $this->client->request("GET", "/resource/4?filter=a", [], [], [
@@ -102,21 +127,33 @@ class IntegrationTest extends \PHPUnit_Framework_TestCase
         $app->register(new HawkSilexServiceProvider(), array());
         $app->register(new SecurityServiceProvider(), array(
             "security.firewalls" => array(
-                "api" => array(
-                    "pattern" => "^/.*",
+                "resource" => array(
+                    "pattern" => "^/resource.*",
                     "hawk" => true,
+                ),
+                "api" => array(
+                    "pattern" => "^/api_with_custom_header_field.*",
+                    "hawk" => array(
+                        'header_field' => 'HawkAuth',
+                    ),
                 ),
             ),
         ));
 
-        $app['security.user_provider.api'] = $app->share(function() use ($app) {
+        $app['security.user_provider.resource'] = $app->share(function() use ($app) {
             return new UserProvider(array(
                 new User("dave", "sha256", "12345", array("ROLE_USER")),
                 new User("beau", "sha256", "67890", array("ROLE_USER")),
             ));
         });
 
+        $app['security.user_provider.api'] = $app->raw('security.user_provider.resource');
+
         $app->match("/resource/{id}", function ($id) {
+            return $id;
+        });
+
+        $app->match("/api_with_custom_header_field/{id}", function ($id) {
             return $id;
         });
 

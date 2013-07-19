@@ -15,12 +15,19 @@ class FirewallListener implements ListenerInterface
     protected $securityContext;
     protected $authenticationManager;
     protected $authenticationEntryPoint;
+    protected $options = array(
+        'header_field' => 'Authorization',
+    );
 
-    public function __construct(SecurityContextInterface $securityContext, AuthenticationManagerInterface $authenticationManager, AuthenticationEntryPointInterface $authenticationEntryPoint)
+    public function __construct(SecurityContextInterface $securityContext, 
+                                AuthenticationManagerInterface $authenticationManager, 
+                                AuthenticationEntryPointInterface $authenticationEntryPoint, 
+                                array $options = array())
     {
         $this->securityContext = $securityContext;
         $this->authenticationManager = $authenticationManager;
         $this->authenticationEntryPoint = $authenticationEntryPoint;
+        $this->options = array_merge($this->options, $options);
     }
 
     public function handle(GetResponseEvent $event)
@@ -30,9 +37,11 @@ class FirewallListener implements ListenerInterface
         $token = new UserToken();
         $token->request = $request;
 
-        // I think we need to check to see if the header is set here, if not, 
-        // do whatever is needed to activate the AuthenticationEntryPoint
-        //
+        if (!$request->headers->has($this->options['header_field'])) {
+            $event->setResponse($this->authenticationEntryPoint->start($request));
+            return;
+        }
+
         try {
             $authToken = $this->authenticationManager->authenticate($token);
             $this->securityContext->setToken($authToken);
