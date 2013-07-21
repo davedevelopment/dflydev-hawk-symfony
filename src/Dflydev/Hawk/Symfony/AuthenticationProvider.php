@@ -3,7 +3,6 @@
 namespace Dflydev\Hawk\Symfony;
 
 use Symfony\Component\Security\Core\Authentication\Provider\AuthenticationProviderInterface;
-use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\NonceExpiredException;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -12,16 +11,14 @@ use Dflydev\Hawk\Server\UnauthorizedException;
 
 class AuthenticationProvider implements AuthenticationProviderInterface
 {
-    protected $userProvider;
     protected $hawkServer;
     protected $providerKey;
     protected $options = array(
         'header_field' => 'Authorization',
     );
 
-    public function __construct(UserProviderInterface $userProvider, Server $hawkServer, $providerKey, array $options = array())
+    public function __construct(Server $hawkServer, $providerKey, array $options = array())
     {
-        $this->userProvider = $userProvider;
         $this->hawkServer = $hawkServer;
         $this->providerKey = $providerKey;
         $this->options = array_merge($this->options, $options);

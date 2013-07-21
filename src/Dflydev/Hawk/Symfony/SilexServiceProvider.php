@@ -79,7 +79,6 @@ class SilexServiceProvider implements ServiceProviderInterface
             }
 
             $provider = new HawkProvider(
-                $app['security.user_provider.'.$name], 
                 $app['security.'.$name.'.hawk.server'],
                 $name,
                 $filteredOptions
