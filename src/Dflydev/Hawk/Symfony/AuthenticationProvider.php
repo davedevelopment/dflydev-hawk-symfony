@@ -12,35 +12,40 @@ use Dflydev\Hawk\Server\UnauthorizedException;
 
 class AuthenticationProvider implements AuthenticationProviderInterface
 {
-    private $userProvider;
-    private $hawkServer;
-    private $options = array(
+    protected $userProvider;
+    protected $hawkServer;
+    protected $providerKey;
+    protected $options = array(
         'header_field' => 'Authorization',
     );
 
-    public function __construct(UserProviderInterface $userProvider, Server $hawkServer, array $options = array())
+    public function __construct(UserProviderInterface $userProvider, Server $hawkServer, $providerKey, array $options = array())
     {
         $this->userProvider = $userProvider;
         $this->hawkServer = $hawkServer;
+        $this->providerKey = $providerKey;
         $this->options = array_merge($this->options, $options);
     }
 
     public function authenticate(TokenInterface $token)
     {
+        if (!$this->supports($token)) {
+            return null;
+        }
+
         try {
 
             $response = $this->hawkServer->authenticate(
-                $token->request->getMethod(),
-                $token->request->getHost(),
-                $token->request->getPort(),
-                $token->request->getRequestUri(),
-                $token->request->headers->get('Content-type'),
-                $token->request->getContent() !== "" ? $token->request->getContent() : null,
-                $token->request->headers->get($this->options['header_field'])
+                $token->getMethod(),
+                $token->getHost(),
+                $token->getPort(),
+                $token->getResource(),
+                $token->getContentType(),
+                $token->getPayload(),
+                $token->getHeader()
             );
 
-            $authenticatedToken = new UserToken($response->credentials()->getRoles());
-            $authenticatedToken->setUser($response->credentials());
+            $authenticatedToken = new AuthenticatedUserToken($this->providerKey, $response->credentials(), $response->credentials()->getRoles());
 
             return $authenticatedToken;
 
@@ -52,6 +57,6 @@ class AuthenticationProvider implements AuthenticationProviderInterface
 
     public function supports(TokenInterface $token)
     {
-        return ($token instanceof UserToken && $token->request->headers->has($this->options['header_field']));
+        return ($token instanceof UserToken && $this->providerKey == $token->getProviderKey());
     }
 }

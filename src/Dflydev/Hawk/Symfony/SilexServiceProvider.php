@@ -81,6 +81,7 @@ class SilexServiceProvider implements ServiceProviderInterface
             $provider = new HawkProvider(
                 $app['security.user_provider.'.$name], 
                 $app['security.'.$name.'.hawk.server'],
+                $name,
                 $filteredOptions
             );
 
@@ -98,6 +99,7 @@ class SilexServiceProvider implements ServiceProviderInterface
                 return new HawkListener(
                     $app['security'],
                     $app['security.authentication_manager'],
+                    $name,
                     $app['security.entry_point.'.$name.'.hawk'],
                     $filteredOptions
                 );
