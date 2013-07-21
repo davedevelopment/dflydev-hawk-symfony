@@ -45,7 +45,8 @@ class AuthenticationProvider implements AuthenticationProviderInterface
                 $token->getHeader()
             );
 
-            $authenticatedToken = new AuthenticatedUserToken($this->providerKey, $response->credentials(), $response->credentials()->getRoles());
+            $authenticatedToken = new UserToken($this->providerKey, $response->credentials()->getRoles());
+            $authenticatedToken->setUser($response->credentials());
 
             return $authenticatedToken;
 

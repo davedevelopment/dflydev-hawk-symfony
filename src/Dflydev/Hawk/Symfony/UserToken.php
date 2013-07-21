@@ -13,6 +13,7 @@ class UserToken extends AbstractToken
     public function __construct($providerKey, array $roles = [], $method = null, $host = null, $port = null, $resource = null, $contentType = null, $payload = null, $header = null)
     {
         parent::__construct($roles);
+        parent::setAuthenticated(count($roles) > 0);
 
         $this->providerKey = $providerKey;
         $this->method = $method;
@@ -22,6 +23,18 @@ class UserToken extends AbstractToken
         $this->contentType = $contentType;
         $this->payload = $payload;
         $this->header = $header;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setAuthenticated($isAuthenticated)
+    {
+        if ($isAuthenticated) {
+            throw new \LogicException('Cannot set this token to trusted after instantiation.');
+        }
+
+        parent::setAuthenticated(false);
     }
 
     public function getCredentials()
