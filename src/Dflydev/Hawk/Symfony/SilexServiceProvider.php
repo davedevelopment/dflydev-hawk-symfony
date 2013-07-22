@@ -49,15 +49,36 @@ class SilexServiceProvider implements ServiceProviderInterface
         $app['security.hawk.server._proto'] = $app->protect(function ($name, $options) use ($app) {
             return $app->share(function ($app) use ($name, $options) {
 
+                $default = array(
+                    'nonce_callback' => null,
+                    'timestamp_skew_sec' => null,
+                    'localtime_offset_sec' => null,
+                );
+
                 $credentialsFunc = function ($username) use ($name, $app) {
                     return $app['security.user_provider.'.$name]->loadUserByUsername($username);
                 };
 
                 $server = ServerBuilder::create($credentialsFunc)
-                    ->setCrypto($app['security.'.$name.'.hawk.crypto'])
-                    ->build();
+                    ->setCrypto($app['security.'.$name.'.hawk.crypto']);
 
-                return $server;
+                if (isset($options['time_provider'])) {
+                    $server->setTimeProvider($options['time_provider']);
+                }
+
+                if (isset($options['nonce_callback'])) {
+                    $server->setNonceCallback($options['nonce_callback']);
+                }
+
+                if (isset($options['timestamp_skew_sec'])) {
+                    $server->setTimestampSkewSec($options['timestamp_skew_sec']);
+                }
+
+                if (isset($options['localtime_offset_sec'])) {
+                    $server->setLocaltimeOffsetSec($options['localtime_offset_sec']);
+                }
+
+                return $server->build();
             });
         });
 

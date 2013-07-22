@@ -118,6 +118,48 @@ class IntegrationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(401, $this->client->getResponse()->getStatusCode());
     }  
 
+    /** @test */
+    public function shouldAuthoriseOldRequestWhenConfiguredWithLongSkew()
+    {
+        $fw = $this->app['security.firewalls'];
+        $fw['resource']['hawk']['timestamp_skew_sec'] = 30;
+        $this->app['security.firewalls'] = $fw;
+
+        $this->client->request("GET", "/resource/4?filter=a", [], [], [
+            'HTTP_AUTHORIZATION' => $this->generateHeader("dave", "sha256", "12345",  strtotime("10 seconds ago"), uniqid(), 'GET', "/resource/4?filter=a", "localhost", 80, null, "hello", null, null),
+        ]);
+
+        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
+    }
+
+    /** @test */
+    public function should401StaleRequestWhenConfiguredWithShortSkew()
+    {
+        $fw = $this->app['security.firewalls'];
+        $fw['resource']['hawk']['timestamp_skew_sec'] = 1;
+        $this->app['security.firewalls'] = $fw;
+
+        $this->client->request("GET", "/resource/4?filter=a", [], [], [
+            'HTTP_AUTHORIZATION' => $this->generateHeader("dave", "sha256", "12345",  strtotime("10 seconds ago"), uniqid(), 'GET', "/resource/4?filter=a", "localhost", 80, null, "hello", null, null),
+        ]);
+
+        $this->assertEquals(401, $this->client->getResponse()->getStatusCode());
+    }
+
+    /** @test */
+    public function should401StaleRequestWhenConfiguredWithAFalseyNonceCallback()
+    {
+        $fw = $this->app['security.firewalls'];
+        $fw['resource']['hawk']['nonce_callback'] = function() { return false; };
+        $this->app['security.firewalls'] = $fw;
+
+        $this->client->request("GET", "/resource/4?filter=a", [], [], [
+            'HTTP_AUTHORIZATION' => $this->generateHeader("dave", "sha256", "12345",  strtotime("10 seconds ago"), uniqid(), 'GET', "/resource/4?filter=a", "localhost", 80, null, "hello", null, null),
+        ]);
+
+        $this->assertEquals(401, $this->client->getResponse()->getStatusCode());
+    }
+
     protected function getApp()
     {
         $app = new Application;        
@@ -129,7 +171,7 @@ class IntegrationTest extends \PHPUnit_Framework_TestCase
             "security.firewalls" => array(
                 "resource" => array(
                     "pattern" => "^/resource.*",
-                    "hawk" => true,
+                    "hawk" => array(),
                 ),
                 "api" => array(
                     "pattern" => "^/api_with_custom_header_field.*",
