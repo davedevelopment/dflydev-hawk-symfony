@@ -10,6 +10,7 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\SecurityContextInterface;
 use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
 use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
+use Dflydev\Hawk\Header\HeaderParser;
 
 class FirewallListener implements ListenerInterface
 {
@@ -71,6 +72,8 @@ class FirewallListener implements ListenerInterface
 
     protected static function createToken($providerKey, Request $request, $headerField = 'Authorization')
     {
+        $headerAttributes = HeaderParser::parseFieldValue($request->headers->get($headerField));
+
         return new UserToken(
             $providerKey,
             array(), // roles
@@ -79,7 +82,7 @@ class FirewallListener implements ListenerInterface
             $request->getPort(),
             $request->getRequestUri(),
             $request->headers->get('Content-type'),
-            $request->getContent() !== "" ? $request->getContent() : null,
+            isset($headerAttributes['hash']) ? $request->getContent() : null,
             $request->headers->get($headerField)
         );
     }
