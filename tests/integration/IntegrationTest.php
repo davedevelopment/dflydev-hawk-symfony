@@ -7,13 +7,14 @@ use Dflydev\Hawk\Symfony\AuthenticationEntryPoint as HawkAuthenticationEntryPoin
 use Dflydev\Hawk\Symfony\Listener as HawkListener;
 use Dflydev\Hawk\Symfony\Provider as HawkProvider;
 use Dflydev\Hawk\Symfony\SilexServiceProvider as HawkSilexServiceProvider;
+use Dflydev\Hawk\Symfony\UserInterface;
 use Dflydev\Hawk\Crypto\Crypto;
 use Dflydev\Hawk\Server\Server;
 use Silex\Application;
 use Silex\Provider\SecurityServiceProvider;
 use Symfony\Component\HttpKernel\Client;
-use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
+use Symfony\Component\Security\Core\User\UserInterface as SymfonyUserInterface;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 
@@ -280,6 +281,11 @@ class User implements CredentialsInterface, UserInterface
     {
         unset ($this->key);
     }
+
+    public function __toString()
+    {
+        return $this->id;
+    }
 }
 
 class UserProvider implements UserProviderInterface
@@ -302,9 +308,8 @@ class UserProvider implements UserProviderInterface
         throw new UsernameNotFoundException();
     }
 
-    public function refreshUser(UserInterface $user)
+    public function refreshUser(SymfonyUserInterface $user)
     {
-        return $this->loadUserByUsername($user->getUsername());
     }
 
     public function supportsClass($class)
